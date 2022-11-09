@@ -1,0 +1,37 @@
+{
+	"name": "project",
+	"version": "1.0.0",
+	"supports": "x64 & linux",
+	"dependencies": [
+		{
+			"name": "hiredis",
+			"default-features": false,
+			"platform": "x64"
+		},
+		{
+			"name": "spdlog",
+			"default-features": false,
+			"platform": "x64"
+		},
+		{
+			"name": "asio",
+			"default-features": false,
+			"platform": "x64"
+		},
+		{
+			"name": "concurrentqueue",
+			"default-features": false,
+			"platform": "x64"
+		},
+		{
+			"name": "physx",
+			"default-features": false,
+			"platform": "x64"
+		},
+		{
+			"name": "pthreads",
+			"default-features": false,
+			"platform": "x64"
+		}
+	]
+}
