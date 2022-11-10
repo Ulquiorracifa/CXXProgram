@@ -1,12 +1,12 @@
 cmake_minimum_required (VERSION 3.8)
-if (POLICY CMP0091)
-  cmake_policy(SET CMP0091 NEW)
-endif (POLICY CMP0091)
+# if (POLICY CMP0091)
+#   cmake_policy(SET CMP0091 NEW)
+# endif (POLICY CMP0091)
 
 project (t_physx)
-
-set_property(TARGET sphysx PROPERTY
-    MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+set(RENDER_SNIPPET true)
+# set_property(TARGET sphysx PROPERTY
+#     MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 # # 并将名称保存到 DIR_SRCS 变量
 file(GLOB_RECURSE DIR_SRCS ./*.cpp ./*.cc ./*.c ./*.h ./*.hpp)
 message(STATUS ${DIR_SRCS})
@@ -18,6 +18,13 @@ include_directories(
 	${SNIPPET_INC}
 )
 target_link_libraries(${PROJECT_NAME} 
+  # ${PHYSX_COMMON_LIBRARY}
+  # ${PHYSX_PHYSICS_LIBRARY}
+  # ${PHYSX_FOUNDATION_LIBRARY}
+  # ${PHYSX_COOKING_LIBRARY}
+  # ${PHYSX_EXTENSIONS_LIBRARY}
+  # ${PHYSX_CHARACTER_LIBRARY}
+  # ${PHYSX_PVD_LIBRARY}
   ${GLUT}  
   sphysx
 )
