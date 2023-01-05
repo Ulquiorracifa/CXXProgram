@@ -50,19 +50,19 @@ set(_PHYSX_PVD_LIBRARY_NAMES
     libPhysXPvdSDK_static_${_PHYSX_LIBRARY_SUFFIX}
 )
 
-set(_SNIPPET_UTILS_LIBRARY_NAMES
-    SnippetUtils_${_PHYSX_LIBRARY_SUFFIX}
-    SnippetUtils_static_${_PHYSX_LIBRARY_SUFFIX}
-    libSnippetUtils_${_PHYSX_LIBRARY_SUFFIX}
-    libSnippetUtils_static_${_PHYSX_LIBRARY_SUFFIX}
-)
+# set(_SNIPPET_UTILS_LIBRARY_NAMES
+#     SnippetUtils_${_PHYSX_LIBRARY_SUFFIX}
+#     SnippetUtils_static_${_PHYSX_LIBRARY_SUFFIX}
+#     libSnippetUtils_${_PHYSX_LIBRARY_SUFFIX}
+#     libSnippetUtils_static_${_PHYSX_LIBRARY_SUFFIX}
+# )
 
-set(_SNIPPET_RENDER_LIBRARY_NAMES
-    SnippetRender_${_PHYSX_LIBRARY_SUFFIX}
-    SnippetRender_static_${_PHYSX_LIBRARY_SUFFIX}
-    libSnippetRender_${_PHYSX_LIBRARY_SUFFIX}
-    libSnippetRender_static_${_PHYSX_LIBRARY_SUFFIX}
-)
+# set(_SNIPPET_RENDER_LIBRARY_NAMES
+#     SnippetRender_${_PHYSX_LIBRARY_SUFFIX}
+#     SnippetRender_static_${_PHYSX_LIBRARY_SUFFIX}
+#     libSnippetRender_${_PHYSX_LIBRARY_SUFFIX}
+#     libSnippetRender_static_${_PHYSX_LIBRARY_SUFFIX}
+# )
 # Stoopid vcpkg build debug and optimized libraries with the same name but in different directories.
 foreach(prefix_path ${CMAKE_PREFIX_PATH})
     if(${prefix_path} MATCHES "[Dd][Ee][Bb][Uu][Gg]\/?$")
@@ -151,13 +151,7 @@ _find_physx_library(PHYSX_COOKING)
 _find_physx_library(PHYSX_EXTENSIONS)
 _find_physx_library(PHYSX_CHARACTER)
 _find_physx_library(PHYSX_PVD)
-# _find_physx_library(SNIPPET_UTILS)
-# _find_physx_library(SNIPPET_RENDER)
-# find_library(SNIPPETUTILS SnippetUtils_static_64.lib ${PROJECT_SOURCE_DIR}/third_party/physx/debug) 
-# find_library(SNIPPETRENDER SnippetUtils_render_64.lib ${PROJECT_SOURCE_DIR}/third_party/physx/debug) 
-
-
-find_library(GLUT glut32.lib ${PROJECT_SOURCE_DIR}/third_party/physx/physx/snippets/graphics/lib/win64/glut)
+find_library(GLUT glut32.lib ${PROJECT_SOURCE_DIR}/third_party/vcpkg/buildtrees/physx/src/be49a99479-d1b16eed08.clean/physx/snippets/graphics/lib/win64/glut)
 
 find_path(PHYSX_INCLUDE_DIR NAMES PxPhysicsAPI.h
           PATHS ${_PHYSX_PREFIX}
@@ -165,9 +159,7 @@ find_path(PHYSX_INCLUDE_DIR NAMES PxPhysicsAPI.h
           NO_CMAKE_PATH
 )
 mark_as_advanced(PHYSX_INCLUDE_DIR)
-message("--------------------------------------------------------------------------")
-message("PHYSX_INCLUDE_DIR ${PHYSX_INCLUDE_DIR}")
-message("CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH}")
+
 # PhysX has two include directories, but vcpkg merges them together. In case of a manual build,
 # check and compensate for the lack of merging here.
 if(PHYSX_INCLUDE_DIR)
@@ -182,10 +174,6 @@ if(PHYSX_INCLUDE_DIR)
         set(PHYSX_FOUNDATION_INCLUDE_DIR ${PHYSX_INCLUDE_DIR} CACHE PATH "Path to a file.")
     endif()
 endif()
-message("--------------------------------------------------------------------------")
-message("PHYSX_FOUNDATION_INCLUDE_DIR ${PHYSX_FOUNDATION_INCLUDE_DIR}")
-# set(PHYSX_SAMPLE_INCLUDE_DIR )
-
 
 find_package_handle_standard_args(PhysX
                                   REQUIRED_VARS PHYSX_COMMON_LIBRARY
@@ -195,8 +183,6 @@ find_package_handle_standard_args(PhysX
                                                 PHYSX_EXTENSIONS_LIBRARY
                                                 PHYSX_CHARACTER_LIBRARY
                                                 PHYSX_PVD_LIBRARY
-                                                # SNIPPET_UTILS_LIBRARY
-                                                # SNIPPET_RENDER_LIBRARY
                                                 PHYSX_INCLUDE_DIR
                                                 PHYSX_FOUNDATION_INCLUDE_DIR
                                   REASON_FAILURE_MESSAGE "Be sure that PhysX 4.1 is available."
@@ -210,8 +196,6 @@ set(PHYSX_LIBRARIES
     ${PHYSX_COOKING_LIBRARY}
     ${PHYSX_COMMON_LIBRARY}
     ${PHYSX_FOUNDATION_LIBRARY}
-    # ${SNIPPET_UTILS_LIBRARY}
-    # ${SNIPPET_RENDER_LIBRARY}
 )
 include(cmake/snippet.cmake)
 set(PHYSX_INCLUDE_DIRS

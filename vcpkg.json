@@ -29,7 +29,7 @@
 			"platform": "x64"
 		},
 		{
-			"name": "pthreads",
+			"name": "mongo-cxx-driver",
 			"default-features": false,
 			"platform": "x64"
 		}

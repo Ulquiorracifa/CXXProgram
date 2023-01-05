@@ -4,6 +4,7 @@ add_subdirectory(logger)
 add_subdirectory(redis)
 add_subdirectory(net)
 add_subdirectory(sphysx)
+add_subdirectory(mongo)
 
 
 
