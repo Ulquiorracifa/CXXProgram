@@ -4,10 +4,12 @@
 #include <iostream>
 #include <vector>
 #include <bsoncxx/json.hpp>
+#include <mongocxx/pool.hpp>
 #include <mongocxx/client.hpp>
 #include <mongocxx/stdx.hpp>
 #include <mongocxx/uri.hpp>
 #include <mongocxx/instance.hpp>
+
 #include <bsoncxx/builder/stream/helpers.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/builder/stream/array.hpp>
@@ -32,8 +34,8 @@ namespace engine::mongodb
             mongo_client(string hostName,string port);
             void setHostName(string hostName);
             void setPort(string port);
-            void connectToHost();
-            mongocxx::client* client();
+            bool connectToHost();
+            mongocxx::pool::entry client();
             ~mongo_client();
 
             mongocxx::stdx::optional<bsoncxx::document::value> find_One(string db,string coll,document& filter,const mongocxx::v_noabi::options::find& options = mongocxx::v_noabi::options::find());
@@ -49,9 +51,9 @@ namespace engine::mongodb
             string m_port;
         private:
             mongocxx::instance* m_dbInstance = nullptr;
-            mongocxx::client* m_client = nullptr;
-            mongocxx::uri uri;
-            // static mongocxx::pool *s_pool = nullptr;
+            // mongocxx::client* m_client = nullptr;
+            // mongocxx::uri uri;
+            mongocxx::pool* s_pool = nullptr;
             unsigned int minPoolSize = 0;
             unsigned int maxPoolSize = 100;
 	};

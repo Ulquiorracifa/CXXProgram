@@ -8,6 +8,7 @@ namespace engine::mongodb
     {
         m_hostName = hostName;
         m_port = port;
+        s_pool = nullptr;
         // mongocxx::instance instance{};
         // bsoncxx::string::view_or_value url_string = std::format()
         // mongocxx::uri uri{url_string};
@@ -16,10 +17,9 @@ namespace engine::mongodb
 
     mongo_client::~mongo_client()
     {
-        // delete s_pool;
-        // s_pool = nullptr;
+        delete s_pool;
+        s_pool = nullptr;
         delete m_dbInstance;
-        delete m_client;
     }
 
     void mongo_client::setHostName(string hostName)
@@ -32,7 +32,7 @@ namespace engine::mongodb
         m_port = port;
     }
 
-    void mongo_client::connectToHost()
+    bool mongo_client::connectToHost()
     {
         if ((m_hostName != "") && (m_port != ""))
         {
@@ -41,28 +41,29 @@ namespace engine::mongodb
                 delete m_dbInstance;
                 m_dbInstance = nullptr;
             }
-            if (m_client)
-            {
-                delete m_client;
-                m_client = nullptr;
-            }
-            m_dbInstance = new (std::nothrow) mongocxx::instance();
-            m_client = new (std::nothrow) mongocxx::client(mongocxx::uri{("mongodb://" + m_hostName + ":" + m_port + "/?minPoolSize=" + std::to_string(minPoolSize) + "&maxPoolSize=" + std::to_string(maxPoolSize)).c_str()});
+            string uri_ = "mongodb://" + m_hostName + ":" + m_port + "/?minPoolSize=" + std::to_string(minPoolSize) + "&maxPoolSize=" + std::to_string(maxPoolSize);
+            mongocxx::uri uri{uri_};
+            s_pool = new mongocxx::pool(uri);
+            m_dbInstance = new mongocxx::instance();
+            auto client = s_pool->acquire();
+            return (bool)client;
         }
+        return false;
     }
 
-    mongocxx::client *mongo_client::client()
+    mongocxx::pool::entry mongo_client::client()
     {
-        return m_client;
+        return s_pool->acquire();
     }
 
     mongocxx::stdx::optional<bsoncxx::document::value> mongo_client::find_One(string db, string coll, document &filter, const mongocxx::v_noabi::options::find &options)
     {
         mongocxx::stdx::optional<bsoncxx::document::value> ret;
 
-        if (m_dbInstance && m_client)
+        auto client = this->client();
+        if (m_dbInstance && (bool)client)
         {
-            return (*m_client)[db.c_str()][coll.c_str()].find_one(filter.view(), options);
+            return (*client)[db.c_str()][coll.c_str()].find_one(filter.view(), options);
         }
 
         return ret;
@@ -70,9 +71,10 @@ namespace engine::mongodb
 
     mongocxx::cursor *mongo_client::find(string db, string coll, document &filter, const mongocxx::v_noabi::options::find &options)
     {
-        if (m_dbInstance && m_client)
+        auto client = this->client();
+        if (m_dbInstance && client)
         {
-            auto c = (*m_client)[db.c_str()][coll.c_str()].find(filter.view(), options);
+            auto c = (*client)[db.c_str()][coll.c_str()].find(filter.view(), options);
             return new (std::nothrow) mongocxx::cursor(std::move(c));
         }
 
@@ -83,9 +85,10 @@ namespace engine::mongodb
     {
         mongocxx::stdx::optional<mongocxx::result::insert_one> ret;
 
-        if (m_dbInstance && m_client)
+        auto client = this->client();
+        if (m_dbInstance && client)
         {
-            ret = (*m_client)[db.c_str()][coll.c_str()].insert_one(doc.view(), options);
+            ret = (*client)[db.c_str()][coll.c_str()].insert_one(doc.view(), options);
         }
 
         return ret;
@@ -94,9 +97,10 @@ namespace engine::mongodb
     mongocxx::stdx::optional<mongocxx::result::update> mongo_client::update_One(string db, string coll, document &filter, document &value, const mongocxx::v_noabi::options::update &options)
     {
         mongocxx::stdx::optional<mongocxx::result::update> ret;
-        if (m_dbInstance && m_client)
+        auto client = this->client();
+        if (m_dbInstance && client)
         {
-            ret = (*m_client)[db.c_str()][coll.c_str()].update_one(
+            ret = (*client)[db.c_str()][coll.c_str()].update_one(
                 filter.view(),
                 bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("$set", value)),
                 options);
@@ -108,9 +112,10 @@ namespace engine::mongodb
     mongocxx::stdx::optional<mongocxx::result::update> mongo_client::update_Many(string db, string coll, document &filter, document &value, const mongocxx::v_noabi::options::update &options)
     {
         mongocxx::stdx::optional<mongocxx::result::update> ret;
-        if (m_dbInstance && m_client)
+        auto client = this->client();
+        if (m_dbInstance && client)
         {
-            ret = (*m_client)[db.c_str()][coll.c_str()].update_many(
+            ret = (*client)[db.c_str()][coll.c_str()].update_many(
                 filter.view(),
                 bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("$set", value)),
                 options);
@@ -123,9 +128,10 @@ namespace engine::mongodb
     {
         mongocxx::stdx::optional<mongocxx::result::delete_result> ret;
 
-        if (m_dbInstance && m_client)
+        auto client = this->client();
+        if (m_dbInstance && client)
         {
-            ret = (*m_client)[db.c_str()][coll.c_str()].delete_one(filter.view(), options);
+            ret = (*client)[db.c_str()][coll.c_str()].delete_one(filter.view(), options);
         }
 
         return ret;
@@ -135,9 +141,10 @@ namespace engine::mongodb
     {
         mongocxx::stdx::optional<mongocxx::result::delete_result> ret;
 
-        if (m_dbInstance && m_client)
+        auto client = this->client();
+        if (m_dbInstance && client)
         {
-            ret = (*m_client)[db.c_str()][coll.c_str()].delete_many(filter.view(), options);
+            ret = (*client)[db.c_str()][coll.c_str()].delete_many(filter.view(), options);
         }
 
         return ret;
@@ -145,7 +152,8 @@ namespace engine::mongodb
 
     std::int64_t mongo_client::countDocument(string db, string coll, document &filter, const mongocxx::options::count &option)
     {
-        return (*m_client)[db.c_str()][coll.c_str()].count_documents(filter.view(), option);
+        auto client = this->client();
+        return (*client)[db.c_str()][coll.c_str()].count_documents(filter.view(), option);
     }
 
 }
